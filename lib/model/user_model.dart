@@ -3,7 +3,7 @@ import 'package:json_annotation/json_annotation.dart';
 
 part 'user_model.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UserModel {
   const UserModel({
     required this.name,
@@ -11,6 +11,9 @@ class UserModel {
     required this.serverMessage,
     required this.address,
   });
+
+  factory UserModel.fromJson(Map<String, dynamic> json) =>
+      _$UserModelFromJson(json);
 
   final String name;
   final int age;
