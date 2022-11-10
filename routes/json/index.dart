@@ -42,10 +42,9 @@ Future<Response> _post(RequestContext context) async {
   final serverMessage = context.read<String>();
   final address = context.read<AddressModel>();
 
-  final request = context.request;
-
+  final requestBody = await context.request.json() as Map<String, dynamic>;
   final userModel = UserModel.fromJson({
-    ...await request.json(),
+    ...requestBody,
     'serverMessage': serverMessage,
     'address': address.toJson(),
   });

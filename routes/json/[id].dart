@@ -42,9 +42,9 @@ Future<Response> _get(RequestContext context, String id) async {
 Future<Response> _put(RequestContext context, String id) async {
   final address = context.read<AddressModel>();
 
-  final request = await context.request.json();
+  final requestBody = await context.request.json() as Map<String, dynamic>;
   final userModel = UserModel.fromJson({
-    ...request,
+    ...requestBody,
     'serverMessage': 'Welcome to the new The Dart Side!',
     'address': address.toJson(),
   });
