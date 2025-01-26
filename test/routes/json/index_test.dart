@@ -25,8 +25,8 @@ void main() {
     // Mock Uri
     when(() => mockRequest.uri).thenReturn(mockUri);
     when(() => mockUri.resolve(any())).thenAnswer(
-      (_) => Uri.parse(
-        'http://localhost:8080/json${_.positionalArguments.first}',
+      (answer) => Uri.parse(
+        'http://localhost:8080/json${answer.positionalArguments.first}',
       ),
     );
   });
