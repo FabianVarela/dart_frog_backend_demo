@@ -13,16 +13,12 @@ curl --request DELETE --url http://localhost:8080/json/<id>
 */
 
 FutureOr<Response> onRequest(RequestContext context, String id) async {
-  switch (context.request.method) {
-    case HttpMethod.get:
-      return _get(context, id);
-    case HttpMethod.put:
-      return _put(context, id);
-    case HttpMethod.delete:
-      return _delete(context, id);
-    default:
-      return Response(statusCode: HttpStatus.methodNotAllowed);
-  }
+  return switch (context.request.method) {
+    HttpMethod.get => _get(context, id),
+    HttpMethod.put => _put(context, id),
+    HttpMethod.delete => _delete(context, id),
+    _ => Response(statusCode: HttpStatus.methodNotAllowed),
+  };
 }
 
 Future<Response> _get(RequestContext context, String id) async {
