@@ -51,8 +51,5 @@ Future<Response> _put(RequestContext context, String id) async {
 }
 
 Future<Response> _delete(RequestContext context, String id) async {
-  return Response.json(
-    statusCode: HttpStatus.noContent,
-    body: {'message': 'Se ha borrado el id $id'},
-  );
+  return Response.json(statusCode: HttpStatus.noContent);
 }
