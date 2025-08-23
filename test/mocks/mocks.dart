@@ -1,6 +1,6 @@
 import 'package:dart_frog/dart_frog.dart';
-import 'package:dart_frog_backend_demo/model/address_model.dart';
-import 'package:dart_frog_backend_demo/model/user_model.dart';
+import 'package:dart_frog_backend_demo/model/address/address_model.dart';
+import 'package:dart_frog_backend_demo/model/user/user_model.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockRequestContext extends Mock implements RequestContext {}

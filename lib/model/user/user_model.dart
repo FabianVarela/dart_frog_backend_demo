@@ -1,4 +1,4 @@
-import 'package:dart_frog_backend_demo/model/address_model.dart';
+import 'package:dart_frog_backend_demo/model/address/address_model.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_model.g.dart';

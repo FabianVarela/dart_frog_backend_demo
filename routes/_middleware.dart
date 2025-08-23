@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:dart_frog/dart_frog.dart';
-import 'package:dart_frog_backend_demo/model/address_model.dart';
+import 'package:dart_frog_backend_demo/model/address/address_model.dart';
 
 Handler middleware(Handler handler) {
   return handler
