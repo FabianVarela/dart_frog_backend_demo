@@ -8,5 +8,5 @@ linter:
   rules:
     avoid_print: false
     file_names: false
-    no_default_cases: false
     public_member_api_docs: false
+    specify_nonobvious_property_types: false
