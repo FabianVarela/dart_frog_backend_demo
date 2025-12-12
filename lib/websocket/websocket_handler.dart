@@ -138,10 +138,10 @@ class WebSocketHandler {
     }
   }
 
-  static void dispose() {
-    _subscription.cancel();
+  static Future<void> dispose() async {
+    await _subscription.cancel();
     for (final channel in _connections.values) {
-      channel.sink.close();
+      await channel.sink.close();
     }
     _connections.clear();
   }
