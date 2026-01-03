@@ -409,12 +409,6 @@ open coverage/html/index.html
 dart test test/routes/json/index_test.dart
 ```
 
-### Watch mode
-
-```bash
-dart test --watch
-```
-
 ## Code Quality
 
 ### Run code analysis
@@ -435,18 +429,6 @@ dart format .
 
 ```bash
 dart fix --apply
-```
-
-### Generate code
-
-For JSON serialization and other code generation:
-
-```bash
-# One-time generation
-dart run build_runner build --delete-conflicting-outputs
-
-# Watch mode (auto-regenerate on changes)
-dart run build_runner watch --delete-conflicting-outputs
 ```
 
 ## Main Dependencies
@@ -720,127 +702,6 @@ Middleware cors() {
 dart analyze
 dart run build_runner build --delete-conflicting-outputs
 dart_frog build
-```
-
-## Performance Optimization
-
-### Server Performance
-
-- **Async Handlers**: Use async/await for non-blocking I/O
-- **Connection Pooling**: Reuse database connections
-- **Caching**: Cache frequently accessed data
-- **Compression**: Enable GZIP compression for responses
-
-### WebSocket Optimization
-
-- **Heartbeat**: Implement ping/pong to detect dead connections
-- **Message Batching**: Batch multiple messages when possible
-- **Binary Protocol**: Use binary data for large payloads
-- **Connection Limits**: Limit concurrent WebSocket connections
-
-### Memory Management
-
-- **Stream Disposal**: Close streams and subscriptions
-- **Request Cleanup**: Clean up resources after request
-- **Memory Monitoring**: Track memory usage in production
-- **Garbage Collection**: Optimize object creation
-
-## Security Best Practices
-
-### Input Validation
-
-- Validate all incoming data
-- Sanitize user input
-- Use strong typing
-- Implement request size limits
-
-### Authentication & Authorization
-
-```dart
-// Example JWT middleware
-Middleware authenticate() {
-  return (handler) {
-    return (context) async {
-      final token = context.request.headers['Authorization'];
-      if (token == null) {
-        return Response(statusCode: 401);
-      }
-      // Verify token
-      return handler(context);
-    };
-  };
-}
-```
-
-### HTTPS
-
-Always use HTTPS in production:
-
-```dart
-import 'dart:io';
-
-// Force HTTPS redirect
-Middleware httpsRedirect() {
-  return (handler) {
-    return (context) async {
-      if (!context.request.url.isScheme('https')) {
-        return Response(statusCode: 301, headers: {
-          'Location': 'https://${context.request.url}',
-        });
-      }
-      return handler(context);
-    };
-  };
-}
-```
-
-### Rate Limiting
-
-Implement rate limiting to prevent abuse:
-
-```dart
-final rateLimiter = RateLimiter(
-  maxRequests: 100,
-  duration: Duration(minutes: 1),
-);
-```
-
-## Contributing
-
-1. Create a branch from `main`
-2. Make your changes
-3. Run tests: `dart test`
-4. Run analysis: `dart analyze`
-5. Format code: `dart format .`
-6. Generate code if needed: `dart run build_runner build --delete-conflicting-outputs`
-7. Create a Pull Request to `main`
-
-## Testing Strategy
-
-### Unit Tests
-
-- Route handler testing
-- Model serialization testing
-- Business logic validation
-- Middleware testing
-
-### Integration Tests
-
-- End-to-end API testing
-- WebSocket communication testing
-- Database integration testing
-- Error handling scenarios
-
-### Load Testing
-
-Use tools like Apache Bench or k6:
-
-```bash
-# Apache Bench
-ab -n 1000 -c 10 http://localhost:8080/json
-
-# k6
-k6 run load-test.js
 ```
 
 ## License
