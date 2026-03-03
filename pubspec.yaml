@@ -10,6 +10,8 @@ dependencies:
   broadcast_bloc: ^0.1.0
   dart_frog: ^1.2.6
   dart_frog_web_socket: ^1.0.3
+  graphql_schema2: ^6.5.0
+  graphql_server2: ^6.5.0
   json_annotation: ^4.11.0
   uuid: ^4.5.3
 
