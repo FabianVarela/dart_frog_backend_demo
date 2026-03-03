@@ -4,13 +4,13 @@
 [![License: MIT][license_badge]][license_link]
 [![Powered by Dart Frog](https://img.shields.io/endpoint?url=https://tinyurl.com/dartfrog-badge)](https://dartfrog.vgv.dev)
 
-Backend API application built with Dart Frog, featuring RESTful endpoints, WebSocket support, and real-time communication. Demonstrates CRUD operations, middleware implementation, and state management with broadcast_bloc.
+Backend API application built with Dart Frog, featuring RESTful endpoints, GraphQL support, WebSocket, and real-time communication. Demonstrates CRUD operations, GraphQL queries, middleware implementation, and state management with broadcast_bloc.
 
 ## Prerequisites
 
 Before getting started, make sure you have the following installed:
 
-- **Dart SDK**: >=3.10.0 <4.0.0
+- **Dart SDK**: >=3.11.0 <4.0.0
 - **Dart Frog CLI**: Latest version
 - **IDE**: VSCode or IntelliJ IDEA with Dart extensions
 
@@ -107,25 +107,32 @@ dart build/bin/server.dart --host 0.0.0.0
 
 ```
 dart_frog_backend_demo/
-├── routes/                  # API route handlers
-│   ├── _middleware.dart    # Global middleware
-│   ├── index.dart          # GET / - Root endpoint
-│   ├── ws.dart             # WebSocket endpoint
-│   └── json/               # JSON CRUD endpoints
-│       ├── index.dart      # GET/POST /json
-│       └── [id].dart       # GET/PUT/DELETE /json/:id
-├── lib/                     # Shared business logic
-│   ├── models/             # Data models
-│   ├── services/           # Business services
-│   └── utils/              # Utilities and helpers
-├── test/                    # Unit and integration tests
-│   ├── routes/             # Route handler tests
-│   └── models/             # Model tests
-├── public/                  # Static files
-├── .dart_frog/             # Generated Dart Frog files (don't edit)
-├── main.dart               # Server entry point
-├── pubspec.yaml            # Dependencies
-└── analysis_options.yaml   # Linter rules
+├── routes/                             # API route handlers
+│   ├── _middleware.dart                # Global middleware
+│   ├── index.dart                      # GET / - Root endpoint
+│   ├── ws.dart                         # WebSocket endpoint
+│   ├── graphql.dart                    # POST /graphql - GraphQL endpoint
+│   └── json/                           # JSON CRUD endpoints
+│       ├── index.dart                  # GET/POST /json
+│       └── [id].dart                   # GET/PUT/DELETE /json/:id
+├── lib/                                # Shared business logic
+│   ├── graphql/                        # GraphQL configuration
+│   │   └── graph_ql_schemas.dart       # GraphQL schema setup
+│   └── model/                          # Data models
+│       ├── user/                       # User model
+│       │   ├── user_model.dart         # User data class
+│       │   └── graphql/                # User GraphQL schema
+│       │       └── user_schema.dart    # User type definition
+│       └── address/                    # Address model
+│           └── address_model.dart      # Address data class
+├── test/                               # Unit and integration tests
+│   ├── routes/                         # Route handler tests
+│   └── models/                         # Model tests
+├── public/                             # Static files
+├── .dart_frog/                         # Generated Dart Frog files (don't edit)
+├── main.dart                           # Server entry point
+├── pubspec.yaml                        # Dependencies
+└── analysis_options.yaml               # Linter rules
 ```
 
 ## API Endpoints
@@ -300,6 +307,88 @@ channel.stream.listen((message) {
 channel.sink.add('{"type": "ping"}');
 ```
 
+### GraphQL Endpoint
+
+#### POST /graphql
+
+GraphQL endpoint for querying data with flexible queries.
+
+**Query - Get all users:**
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ users { name age serverMessage address { street number zipCode } } }"}'
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "users": [
+      {
+        "name": "Dash",
+        "age": 42,
+        "serverMessage": "Hello from server",
+        "address": {
+          "street": "Main St",
+          "number": 123,
+          "zipCode": 12345
+        }
+      }
+    ]
+  }
+}
+```
+
+**Query - Find user by ID:**
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ findUser(id: 1) { name age address { street number } } }"}'
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "findUser": {
+      "name": "Dash",
+      "age": 42,
+      "address": {
+        "street": "Main St",
+        "number": 123
+      }
+    }
+  }
+}
+```
+
+**Available Queries:**
+
+| Query      | Arguments | Returns  | Description       |
+| ---------- | --------- | -------- | ----------------- |
+| `users`    | -         | `[User]` | Get all users     |
+| `findUser` | `id: Int` | `User`   | Find a user by ID |
+
+**User Type:**
+
+| Field           | Type      | Description         |
+| --------------- | --------- | ------------------- |
+| `name`          | `String`  | User's name         |
+| `age`           | `Int`     | User's age          |
+| `serverMessage` | `String`  | Message from server |
+| `address`       | `Address` | User's address      |
+
+**Address Type:**
+
+| Field     | Type     | Description   |
+| --------- | -------- | ------------- |
+| `street`  | `String` | Street name   |
+| `number`  | `Int`    | Street number |
+| `zipCode` | `Int`    | ZIP code      |
+
 ## Features
 
 ### RESTful API
@@ -310,6 +399,14 @@ channel.sink.add('{"type": "ping"}');
 - **HTTP Methods**: Support for GET, POST, PUT, DELETE
 - **Request Validation**: Input validation and error handling
 - **Response Formatting**: Consistent JSON response structure
+
+### GraphQL Support
+
+- **Flexible Queries**: Query exactly the data you need
+- **Type System**: Strongly typed schema with User and Address types
+- **Nested Objects**: Support for nested object queries (User -> Address)
+- **Query Arguments**: Support for query parameters (e.g., `findUser(id: 1)`)
+- **Schema Definition**: Clean schema definition using `graphql_schema2`
 
 ### WebSocket Support
 
@@ -441,6 +538,11 @@ dart fix --apply
 ### State Management
 
 - **broadcast_bloc**: BLoC pattern with broadcast capabilities
+
+### GraphQL
+
+- **graphql_schema2**: GraphQL schema definition
+- **graphql_server2**: GraphQL server implementation
 
 ### Data Serialization
 
