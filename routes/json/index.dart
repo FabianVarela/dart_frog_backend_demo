@@ -13,8 +13,8 @@ curl --request POST --url http://localhost:8080/json \
 
 FutureOr<Response> onRequest(RequestContext context) async {
   return switch (context.request.method) {
-    HttpMethod.get => _get(context),
-    HttpMethod.post => _post(context),
+    .get => _get(context),
+    .post => _post(context),
     _ => Response(statusCode: HttpStatus.methodNotAllowed),
   };
 }
