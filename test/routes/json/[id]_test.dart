@@ -37,7 +37,7 @@ void main() {
   group('GET /json/[id]', () {
     test('Get $UserModel by id and set status code 200', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.get);
+      when(() => mockRequest.method).thenReturn(.get);
 
       when(() => mockContext.read<String>()).thenReturn(mockServerMessage);
       when(() => mockContext.read<AddressModel>()).thenReturn(mockAddress);
@@ -54,7 +54,7 @@ void main() {
   group('PUT /json/[id]', () {
     test('Update $UserModel by id and set status code 200', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.put);
+      when(() => mockRequest.method).thenReturn(.put);
       when(() => mockContext.read<AddressModel>()).thenReturn(mockAddress);
 
       when(() => mockRequest.json()).thenAnswer(
@@ -82,24 +82,21 @@ void main() {
   group('DELETE /json/[id]', () {
     test('Delete $UserModel by id and set status code 204', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.delete);
+      when(() => mockRequest.method).thenReturn(.delete);
 
       // Act
       final response = await route.onRequest(mockContext, pathId);
 
       // Assert
+      // HTTP 204 No Content should not have a body
       expect(response.statusCode, equals(HttpStatus.noContent));
-      expect(
-        response.json(),
-        completion({'message': 'Se ha borrado el id $pathId'}),
-      );
     });
   });
 
   group('Error 405', () {
     test('Return 405 if method is POST', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.post);
+      when(() => mockRequest.method).thenReturn(.post);
 
       // Act
       final response = await route.onRequest(mockContext, pathId);
@@ -109,7 +106,7 @@ void main() {
     });
     test('Return 405 if method is PATCH', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.patch);
+      when(() => mockRequest.method).thenReturn(.patch);
 
       // Act
       final response = await route.onRequest(mockContext, pathId);

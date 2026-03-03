@@ -34,7 +34,7 @@ void main() {
   group('GET /', () {
     test('Get $UserModel with status code 200', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.get);
+      when(() => mockRequest.method).thenReturn(.get);
 
       when(() => mockContext.read<String>()).thenReturn(mockServerMessage);
       when(() => mockContext.read<AddressModel>()).thenReturn(mockAddress);
@@ -51,7 +51,7 @@ void main() {
   group('POST /', () {
     test('Send $UserModel with status code 201', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.post);
+      when(() => mockRequest.method).thenReturn(.post);
 
       when(() => mockContext.read<String>()).thenReturn(mockServerMessage);
       when(() => mockContext.read<AddressModel>()).thenReturn(mockAddress);
@@ -75,7 +75,7 @@ void main() {
   group('Error 405', () {
     test('Return 405 if method is PUT', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.put);
+      when(() => mockRequest.method).thenReturn(.put);
 
       // Act
       final response = await route.onRequest(mockContext);
@@ -85,7 +85,7 @@ void main() {
     });
     test('Return 405 if method is PATCH', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.patch);
+      when(() => mockRequest.method).thenReturn(.patch);
 
       // Act
       final response = await route.onRequest(mockContext);
@@ -95,7 +95,7 @@ void main() {
     });
     test('Return 405 if method is DELETE', () async {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.delete);
+      when(() => mockRequest.method).thenReturn(.delete);
 
       // Act
       final response = await route.onRequest(mockContext);

@@ -33,7 +33,7 @@ void main() {
       const greeting = 'Welcome to the Dart Frog Demo';
 
       when(() => mockContext.read<String>()).thenReturn(greeting);
-      when(() => mockRequest.method).thenReturn(HttpMethod.get);
+      when(() => mockRequest.method).thenReturn(.get);
 
       // Act
       final response = route.onRequest(mockContext);
@@ -47,7 +47,7 @@ void main() {
   group('Error 405', () {
     test('Return 405 if method is POST', () {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.post);
+      when(() => mockRequest.method).thenReturn(.post);
 
       // Act
       final response = route.onRequest(mockContext);
@@ -57,7 +57,7 @@ void main() {
     });
     test('Return 405 if method is PUT', () {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.put);
+      when(() => mockRequest.method).thenReturn(.put);
 
       // Act
       final response = route.onRequest(mockContext);
@@ -67,7 +67,7 @@ void main() {
     });
     test('Return 405 if method is PATCH', () {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.patch);
+      when(() => mockRequest.method).thenReturn(.patch);
 
       // Act
       final response = route.onRequest(mockContext);
@@ -77,7 +77,7 @@ void main() {
     });
     test('Return 405 if method is DELETE', () {
       // Arrange
-      when(() => mockRequest.method).thenReturn(HttpMethod.delete);
+      when(() => mockRequest.method).thenReturn(.delete);
 
       // Act
       final response = route.onRequest(mockContext);
