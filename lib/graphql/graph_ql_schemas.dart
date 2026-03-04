@@ -37,6 +37,51 @@ GraphQL createGraphQL(RequestContext context) {
         ),
       ],
     ),
+    mutationType: objectType(
+      'Mutation',
+      fields: [
+        field(
+          'createUser',
+          userSchema,
+          inputs: [
+            GraphQLFieldInput('name', graphQLString.nonNullable()),
+            GraphQLFieldInput('age', graphQLInt.nonNullable()),
+          ],
+          resolve: (_, args) => UserModel(
+            name: args['name'] as String,
+            age: args['age'] as int,
+            serverMessage: 'User created successfully!',
+            address: context.read<AddressModel>(),
+          ),
+        ),
+        field(
+          'updateUser',
+          userSchema,
+          inputs: [
+            GraphQLFieldInput('id', graphQLInt.nonNullable()),
+            GraphQLFieldInput('name', graphQLString),
+            GraphQLFieldInput('age', graphQLInt),
+          ],
+          resolve: (_, args) => UserModel(
+            name: args['name'] as String? ?? 'Dash',
+            age: args['age'] as int? ?? 42,
+            serverMessage: 'User ${args['id'] as int} updated successfully!',
+            address: context.read<AddressModel>(),
+          ),
+        ),
+        field(
+          'deleteUser',
+          graphQLBoolean,
+          inputs: [GraphQLFieldInput('id', graphQLInt.nonNullable())],
+          resolve: (_, args) {
+            // Here you would delete the user from your data using the ID.
+            // ignore: unused_local_variable
+            final id = args['id'] as int;
+            return true;
+          },
+        ),
+      ],
+    ),
   );
 
   return GraphQL(schema);
