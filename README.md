@@ -112,16 +112,18 @@ dart_frog_backend_demo/
 │   ├── index.dart                      # GET / - Root endpoint
 │   ├── ws.dart                         # WebSocket endpoint
 │   ├── graphql.dart                    # POST /graphql - GraphQL endpoint
+│   ├── graphql_ws.dart                 # WS /graphql_ws - GraphQL subscriptions
 │   └── json/                           # JSON CRUD endpoints
 │       ├── index.dart                  # GET/POST /json
 │       └── [id].dart                   # GET/PUT/DELETE /json/:id
 ├── lib/                                # Shared business logic
 │   ├── graphql/                        # GraphQL configuration
-│   │   └── graph_ql_schemas.dart       # GraphQL schema setup
+│   │   ├── graph_ql_schemas.dart       # GraphQL schema (queries, mutations, subscriptions)
+│   │   └── graphql_subscriptions.dart  # Subscription event streams
 │   └── model/                          # Data models
 │       ├── user/                       # User model
 │       │   ├── user_model.dart         # User data class
-│       │   └── graphql/                # User GraphQL schema
+│       │   └── schema/                 # User GraphQL schema
 │       │       └── user_schema.dart    # User type definition
 │       └── address/                    # Address model
 │           └── address_model.dart      # Address data class
@@ -157,9 +159,20 @@ curl http://localhost:8080/
 
 ### JSON CRUD Endpoints
 
+These endpoints demonstrate RESTful operations using the `UserModel`.
+
+**UserModel Structure:**
+
+| Field           | Type      | Description                          |
+| --------------- | --------- | ------------------------------------ |
+| `name`          | `String`  | User's name (required in request)    |
+| `age`           | `Int`     | User's age (required in request)     |
+| `serverMessage` | `String`  | Message from server (auto-generated) |
+| `address`       | `Address` | User's address (auto-generated)      |
+
 #### GET /json
 
-Get all JSON items.
+Get all users.
 
 ```bash
 curl http://localhost:8080/json
@@ -167,101 +180,123 @@ curl http://localhost:8080/json
 
 **Response:**
 ```json
-{
-  "items": [
-    {
-      "id": "uuid-1",
-      "name": "Item 1",
-      "createdAt": "2024-01-01T00:00:00.000Z"
+[
+  {
+    "name": "Dash",
+    "age": 42,
+    "serverMessage": "Welcome to Not The Dart Side!",
+    "address": {
+      "street": "Bogota",
+      "number": 2503,
+      "zipCode": 110721
     }
-  ]
-}
+  }
+]
 ```
 
 #### POST /json
 
-Create a new JSON item.
+Create a new user.
 
 ```bash
 curl -X POST http://localhost:8080/json \
   -H "Content-Type: application/json" \
-  -d '{"name": "New Item"}'
+  -d '{"name": "Fabian V.", "age": 30}'
 ```
 
 **Request Body:**
 ```json
 {
-  "name": "New Item"
+  "name": "Fabian V.",
+  "age": 30
 }
 ```
 
-**Response:**
+**Response (201 Created):**
 ```json
 {
-  "id": "uuid-2",
-  "name": "New Item",
-  "createdAt": "2024-01-01T00:00:00.000Z"
+  "message": "ok",
+  "body": {
+    "name": "Fabian V.",
+    "age": 30,
+    "serverMessage": "Welcome to Not The Dart Side!",
+    "address": {
+      "street": "Bogota",
+      "number": 2503,
+      "zipCode": 110721
+    }
+  }
 }
 ```
 
 #### GET /json/:id
 
-Get a specific JSON item by ID.
+Get a specific user by ID.
 
 ```bash
-curl http://localhost:8080/json/uuid-1
+curl http://localhost:8080/json/1
 ```
 
 **Response:**
 ```json
 {
-  "id": "uuid-1",
-  "name": "Item 1",
-  "createdAt": "2024-01-01T00:00:00.000Z"
+  "name": "Dash",
+  "age": 42,
+  "serverMessage": "Welcome to Not The Dart Side!",
+  "address": {
+    "street": "Bogota",
+    "number": 2503,
+    "zipCode": 110721
+  }
 }
 ```
 
 #### PUT /json/:id
 
-Update an existing JSON item.
+Update an existing user.
 
 ```bash
-curl -X PUT http://localhost:8080/json/uuid-1 \
+curl -X PUT http://localhost:8080/json/1 \
   -H "Content-Type: application/json" \
-  -d '{"name": "Updated Item"}'
+  -d '{"name": "Dash Updated", "age": 43}'
 ```
 
 **Request Body:**
 ```json
 {
-  "name": "Updated Item"
+  "name": "Dash Updated",
+  "age": 43
 }
 ```
 
 **Response:**
 ```json
 {
-  "id": "uuid-1",
-  "name": "Updated Item",
-  "createdAt": "2024-01-01T00:00:00.000Z",
-  "updatedAt": "2024-01-01T01:00:00.000Z"
+  "message": "Actualizado el id 1",
+  "body": {
+    "name": "Dash Updated",
+    "age": 43,
+    "serverMessage": "Welcome to the new The Dart Side!",
+    "address": {
+      "street": "Bogota",
+      "number": 2503,
+      "zipCode": 110721
+    }
+  }
 }
 ```
 
 #### DELETE /json/:id
 
-Delete a JSON item.
+Delete a user.
 
 ```bash
-curl -X DELETE http://localhost:8080/json/uuid-1
+curl -X DELETE http://localhost:8080/json/1
 ```
 
-**Response:**
-```json
-{
-  "message": "Item deleted successfully",
-  "id": "uuid-1"
-}
+**Response (204 No Content):**
+```
+(empty response body)
 ```
 
 ### WebSocket Endpoint
@@ -372,6 +407,62 @@ curl -X POST http://localhost:8080/graphql \
 | `users`    | -         | `[User]` | Get all users     |
 | `findUser` | `id: Int` | `User`   | Find a user by ID |
 
+**Available Mutations:**
+
+| Mutation     | Arguments                              | Returns   | Description             |
+| ------------ | -------------------------------------- | --------- | ----------------------- |
+| `createUser` | `name: String!`, `age: Int!`           | `User`    | Create a new user       |
+| `updateUser` | `id: Int!`, `name: String`, `age: Int` | `User`    | Update an existing user |
+| `deleteUser` | `id: Int!`                             | `Boolean` | Delete a user by ID     |
+
+**Mutation - Create user:**
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation { createUser(name: \"John\", age: 25) { name age serverMessage } }"}'
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "createUser": {
+      "name": "John",
+      "age": 25,
+      "serverMessage": "User created successfully!"
+    }
+  }
+}
+```
+
+**Mutation - Update user:**
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation { updateUser(id: 1, name: \"Jane\", age: 30) { name age serverMessage } }"}'
+```
+
+**Mutation - Delete user:**
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation { deleteUser(id: 1) }"}'
+```
+
+**Mutation with variables:**
+
+```bash
+curl -X POST http://localhost:8080/graphql \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "mutation CreateUser($name: String!, $age: Int!) { createUser(name: $name, age: $age) { name age } }",
+    "variables": { "name": "Alice", "age": 28 }
+  }'
+```
+
 **User Type:**
 
 | Field           | Type      | Description         |
@@ -389,6 +480,175 @@ curl -X POST http://localhost:8080/graphql \
 | `number`  | `Int`    | Street number |
 | `zipCode` | `Int`    | ZIP code      |
 
+### GraphQL Subscriptions (WebSocket)
+
+#### WS /graphql_ws
+
+WebSocket endpoint for GraphQL subscriptions with real-time updates.
+
+**Available Subscriptions:**
+
+| Subscription    | Arguments    | Returns | Description                               |
+| --------------- | ------------ | ------- | ----------------------------------------- |
+| `onUserCreated` | -            | `User`  | Emits when a user is created via mutation |
+| `onUserUpdated` | -            | `User`  | Emits when a user is updated via mutation |
+| `onUserDeleted` | -            | `Int`   | Emits user ID when deleted via mutation   |
+| `countdown`     | `from: Int!` | `Int`   | Countdown from a number (1 per second)    |
+
+**JavaScript Client Example:**
+
+```javascript
+const ws = new WebSocket('ws://localhost:8080/graphql_ws');
+
+// Initialize connection
+ws.onopen = () => {
+  ws.send(JSON.stringify({ type: 'connection_init' }));
+};
+
+ws.onmessage = (event) => {
+  const data = JSON.parse(event.data);
+
+  if (data.type === 'connection_ack') {
+    // Subscribe to new users
+    ws.send(JSON.stringify({
+      id: '1',
+      type: 'subscribe',
+      payload: {
+        query: `subscription { onUserCreated { name age serverMessage } }`
+      }
+    }));
+
+    // Subscribe to countdown
+    ws.send(JSON.stringify({
+      id: '2',
+      type: 'subscribe',
+      payload: {
+        query: `subscription { countdown(from: 5) }`
+      }
+    }));
+  }
+
+  if (data.type === 'next') {
+    console.log('Received:', data.payload.data);
+  }
+
+  if (data.type === 'complete') {
+    console.log('Subscription completed:', data.id);
+  }
+};
+
+// Stop a subscription
+ws.send(JSON.stringify({ id: '1', type: 'stop' }));
+```
+
+**Dart Client Example:**
+
+```dart
+import 'dart:convert';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+final channel = WebSocketChannel.connect(
+  Uri.parse('ws://localhost:8080/graphql_ws'),
+);
+
+// Initialize connection
+channel.sink.add(jsonEncode({'type': 'connection_init'}));
+
+// Listen for messages
+channel.stream.listen((message) {
+  final data = jsonDecode(message as String) as Map<String, dynamic>;
+
+  if (data['type'] == 'connection_ack') {
+    // Subscribe to user created events
+    channel.sink.add(jsonEncode({
+      'id': '1',
+      'type': 'subscribe',
+      'payload': {
+        'query': 'subscription { onUserCreated { name age } }',
+      },
+    }));
+  }
+
+  if (data['type'] == 'next') {
+    print('Received: ${data['payload']}');
+  }
+});
+```
+
+**Testing with Postman:**
+
+1. **Create a WebSocket request:**
+   - Click **New** → **WebSocket**
+   - Enter URL: `ws://localhost:8080/graphql_ws`
+   - Click **Connect**
+
+2. **Initialize connection:**
+   ```json
+   {"type": "connection_init"}
+   ```
+   You'll receive: `{"type": "connection_ack"}`
+
+3. **Subscribe to events:**
+   ```json
+   {
+     "id": "1",
+     "type": "subscribe",
+     "payload": {
+       "query": "subscription { onUserCreated { name age serverMessage } }"
+     }
+   }
+   ```
+
+4. **Test the subscription:**
+   In another Postman tab, trigger the mutation:
+   ```
+   POST http://localhost:8080/graphql
+   Content-Type: application/json
+
+   {"query": "mutation { createUser(name: \"Test\", age: 25) { name } }"}
+   ```
+   You'll see the event in the WebSocket connection.
+
+5. **Other subscription examples:**
+   ```json
+   // Subscribe to user updates
+   {
+     "id": "2",
+     "type": "subscribe",
+     "payload": {
+       "query": "subscription { onUserUpdated { name age serverMessage } }"
+     }
+   }
+
+   // Subscribe to countdown
+   {
+     "id": "3",
+     "type": "subscribe",
+     "payload": {
+       "query": "subscription { countdown(from: 10) }"
+     }
+   }
+   ```
+
+6. **Stop a subscription:**
+   ```json
+   {"id": "1", "type": "stop"}
+   ```
+
+**WebSocket Protocol Messages:**
+
+| Type              | Direction       | Description                     |
+| ----------------- | --------------- | ------------------------------- |
+| `connection_init` | Client → Server | Initialize WebSocket connection |
+| `connection_ack`  | Server → Client | Connection acknowledged         |
+| `subscribe`       | Client → Server | Start a subscription            |
+| `next`            | Server → Client | Subscription data event         |
+| `complete`        | Server → Client | Subscription completed          |
+| `stop`            | Client → Server | Stop a subscription             |
+| `ping`            | Client → Server | Heartbeat ping                  |
+| `pong`            | Server → Client | Heartbeat response              |
+| `error`           | Server → Client | Error message                   |
+
 ## Features
 
 ### RESTful API
@@ -403,6 +663,8 @@ curl -X POST http://localhost:8080/graphql \
 ### GraphQL Support
 
 - **Flexible Queries**: Query exactly the data you need
+- **Mutations**: Create, update, and delete operations
+- **Subscriptions**: Real-time updates via WebSocket
 - **Type System**: Strongly typed schema with User and Address types
 - **Nested Objects**: Support for nested object queries (User -> Address)
 - **Query Arguments**: Support for query parameters (e.g., `findUser(id: 1)`)
