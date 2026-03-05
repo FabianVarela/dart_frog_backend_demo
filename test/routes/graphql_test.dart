@@ -136,6 +136,102 @@ void main() {
     });
   });
 
+  group('Mutations', () {
+    test('createUser mutation returns new user', () async {
+      // Arrange
+      when(() => mockRequest.method).thenReturn(.post);
+      when(() => mockRequest.json()).thenAnswer(
+        (_) async => {
+          'query':
+              'mutation { createUser(name: "John", age: 25) '
+              '{ name age serverMessage } }',
+        },
+      );
+
+      // Act
+      final response = await route.onRequest(mockContext);
+
+      // Assert
+      expect(response.statusCode, equals(HttpStatus.ok));
+
+      final body = await response.body();
+      expect(body, contains('data'));
+      expect(body, contains('createUser'));
+      expect(body, contains('John'));
+      expect(body, contains('25'));
+    });
+
+    test('updateUser mutation returns updated user', () async {
+      // Arrange
+      when(() => mockRequest.method).thenReturn(.post);
+      when(() => mockRequest.json()).thenAnswer(
+        (_) async => {
+          'query':
+              'mutation { updateUser(id: 1, name: "Jane", age: 30) '
+              '{ name age serverMessage } }',
+        },
+      );
+
+      // Act
+      final response = await route.onRequest(mockContext);
+
+      // Assert
+      expect(response.statusCode, equals(HttpStatus.ok));
+
+      final body = await response.body();
+      expect(body, contains('data'));
+      expect(body, contains('updateUser'));
+      expect(body, contains('Jane'));
+    });
+
+    test('deleteUser mutation returns true', () async {
+      // Arrange
+      when(() => mockRequest.method).thenReturn(.post);
+      when(() => mockRequest.json()).thenAnswer(
+        (_) async => {'query': 'mutation { deleteUser(id: 1) }'},
+      );
+
+      // Act
+      final response = await route.onRequest(mockContext);
+
+      // Assert
+      expect(response.statusCode, equals(HttpStatus.ok));
+
+      final body = await response.body();
+      expect(body, contains('data'));
+      expect(body, contains('deleteUser'));
+      expect(body, contains('true'));
+    });
+
+    test('createUser mutation with variables', () async {
+      // Arrange
+      when(() => mockRequest.method).thenReturn(.post);
+      when(() => mockRequest.json()).thenAnswer(
+        (_) async => {
+          'query': r'''
+            mutation CreateUser($name: String!, $age: Int!) {
+              createUser(name: $name, age: $age) {
+                name
+                age
+              }
+            }
+          ''',
+          'variables': {'name': 'Alice', 'age': 28},
+        },
+      );
+
+      // Act
+      final response = await route.onRequest(mockContext);
+
+      // Assert
+      expect(response.statusCode, equals(HttpStatus.ok));
+
+      final body = await response.body();
+      expect(body, contains('createUser'));
+      expect(body, contains('Alice'));
+    });
+  });
+
   group('Error 405', () {
     test('returns 405 if method is GET', () async {
       // Arrange
