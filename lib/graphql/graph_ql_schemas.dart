@@ -1,4 +1,5 @@
 import 'package:dart_frog/dart_frog.dart';
+import 'package:dart_frog_backend_demo/graphql/graphql_subscriptions.dart';
 import 'package:dart_frog_backend_demo/model/address/address_model.dart';
 import 'package:dart_frog_backend_demo/model/user/schema/user_schema.dart';
 import 'package:dart_frog_backend_demo/model/user/user_model.dart';
@@ -47,12 +48,16 @@ GraphQL createGraphQL(RequestContext context) {
             GraphQLFieldInput('name', graphQLString.nonNullable()),
             GraphQLFieldInput('age', graphQLInt.nonNullable()),
           ],
-          resolve: (_, args) => UserModel(
-            name: args['name'] as String,
-            age: args['age'] as int,
-            serverMessage: 'User created successfully!',
-            address: context.read<AddressModel>(),
-          ),
+          resolve: (_, args) {
+            final user = UserModel(
+              name: args['name'] as String,
+              age: args['age'] as int,
+              serverMessage: 'User created successfully!',
+              address: context.read<AddressModel>(),
+            );
+            GraphQLSubscriptions.instance.notifyUserCreated(user);
+            return user;
+          },
         ),
         field(
           'updateUser',
@@ -62,23 +67,60 @@ GraphQL createGraphQL(RequestContext context) {
             GraphQLFieldInput('name', graphQLString),
             GraphQLFieldInput('age', graphQLInt),
           ],
-          resolve: (_, args) => UserModel(
-            name: args['name'] as String? ?? 'Dash',
-            age: args['age'] as int? ?? 42,
-            serverMessage: 'User ${args['id'] as int} updated successfully!',
-            address: context.read<AddressModel>(),
-          ),
+          resolve: (_, args) {
+            final user = UserModel(
+              name: args['name'] as String? ?? 'Dash',
+              age: args['age'] as int? ?? 42,
+              serverMessage: 'User ${args['id'] as int} updated successfully!',
+              address: context.read<AddressModel>(),
+            );
+            GraphQLSubscriptions.instance.notifyUserUpdated(user);
+            return user;
+          },
         ),
         field(
           'deleteUser',
           graphQLBoolean,
           inputs: [GraphQLFieldInput('id', graphQLInt.nonNullable())],
           resolve: (_, args) {
-            // Here you would delete the user from your data using the ID.
-            // ignore: unused_local_variable
             final id = args['id'] as int;
+            GraphQLSubscriptions.instance.notifyUserDeleted(id);
             return true;
           },
+        ),
+      ],
+    ),
+    subscriptionType: objectType(
+      'Subscription',
+      fields: [
+        field(
+          'onUserCreated',
+          userSchema,
+          resolve: (_, _) => GraphQLSubscriptions.instance.onUserCreated.map(
+            (user) => {'onUserCreated': user},
+          ),
+        ),
+        field(
+          'onUserUpdated',
+          userSchema,
+          resolve: (_, _) => GraphQLSubscriptions.instance.onUserUpdated.map(
+            (user) => {'onUserUpdated': user},
+          ),
+        ),
+        field(
+          'onUserDeleted',
+          graphQLInt,
+          resolve: (_, _) => GraphQLSubscriptions.instance.onUserDeleted.map(
+            (id) => {'onUserDeleted': id},
+          ),
+        ),
+        field(
+          'countdown',
+          graphQLInt,
+          inputs: [GraphQLFieldInput('from', graphQLInt.nonNullable())],
+          resolve: (_, args) => GraphQLSubscriptions.instance
+              .countdown(args['from'] as int)
+              .map((value) => {'countdown': value}),
         ),
       ],
     ),
