@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dart_frog_backend_demo/cubit/color/color_manager_cubit.dart';
+import 'package:dart_frog_backend_demo/middleware/rate_limiter.dart';
 import 'package:dart_frog_backend_demo/model/address/address_model.dart';
 import 'package:dart_frog_backend_demo/websocket/websocket_handler.dart';
 
@@ -13,6 +14,7 @@ Middleware _colorManagerProvider() {
 
 Handler middleware(Handler handler) {
   return handler
+      .use(rateLimitMiddleware())
       .use((handler) {
         return (context) async {
           // Execute code before request is handled.
